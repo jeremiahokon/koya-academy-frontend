@@ -1,82 +1,26 @@
-import { FlatCompat } from '@eslint/eslintrc';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import js from '@eslint/js';
-import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import reactPlugin from 'eslint-plugin-react';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 import simpleImportSortPlugin from 'eslint-plugin-simple-import-sort';
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
 import unicornPlugin from 'eslint-plugin-unicorn';
-import a11yPlugin from 'eslint-plugin-jsx-a11y';
 import playwrightPlugin from 'eslint-plugin-playwright';
-import prettierConfig from 'eslint-config-prettier';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import prettier from 'eslint-config-prettier/flat';
 
-// For compatibility with some plugins that haven't migrated to flat config
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-});
-
-const config = [
-  // Ignores
-  {
-    ignores: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.next/**',
-      '**/coverage/**',
-      '**/public/**',
-      '**/.git/**',
-      '**/.husky/**',
-      '**/.vscode/**',
-      '**/package-lock.json',
-      '**/pnpm-lock.yaml',
-    ],
-  },
-
+const eslintConfig = defineConfig([
   // Base JS config
   js.configs.recommended,
 
-  // TypeScript config
-  {
-    files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        React: 'readonly',
-      },
-    },
-    plugins: {
-      '@typescript-eslint': tseslint,
-    },
-    rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_' },
-      ],
-      '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/ban-ts-comment': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-empty-interface': 'error',
-      '@typescript-eslint/no-empty-function': 'warn',
-    },
-  },
+  // Next.js configs (includes React, React Hooks, jsx-a11y, and Next.js rules)
+  ...nextVitals,
+  ...nextTs,
 
-  // React config
+  // Override/extend React rules from Next.js config
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
-    plugins: {
-      react: reactPlugin,
-    },
     rules: {
+      // React rules
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react/display-name': 'off',
@@ -85,39 +29,20 @@ const config = [
         { props: 'never', children: 'never' },
       ],
       'react/self-closing-comp': ['error', { component: true, html: true }],
-    },
-    settings: {
-      react: {
-        version: 'detect',
-      },
-    },
-  },
-
-  // React Hooks config
-  {
-    files: ['**/*.{js,jsx,ts,tsx}'],
-    plugins: {
-      'react-hooks': reactHooksPlugin,
-    },
-    rules: {
+      
+      // React Hooks rules
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-    },
-  },
-
-  // Next.js config
-  ...compat.config({
-    extends: ['next/core-web-vitals'],
-    parserOptions: {
-      requireConfigFile: false,
-    },
-  }),
-  {
-    files: ['**/*.{js,jsx,ts,tsx}'],
-    rules: {
+      
+      // Next.js custom rules
       '@next/next/no-img-element': 'off',
       '@next/next/no-page-custom-font': 'off',
       '@next/next/no-duplicate-head': 'off',
+      
+      // Accessibility rules (jsx-a11y is already included in nextVitals)
+      'jsx-a11y/alt-text': 'off', // Handled by Next.js Image component
+      'jsx-a11y/heading-has-content': 'off', // Allow empty headings
+      'jsx-a11y/no-noninteractive-element-interactions': 'off',
     },
   },
 
@@ -165,19 +90,6 @@ const config = [
     },
   },
 
-  // Accessibility config
-  {
-    files: ['**/*.{js,jsx,ts,tsx}'],
-    plugins: {
-      'jsx-a11y': a11yPlugin,
-    },
-    rules: {
-      'jsx-a11y/alt-text': 'off', // Handled by Next.js Image component
-      'jsx-a11y/heading-has-content': 'off', // Allow empty headings
-      'jsx-a11y/no-noninteractive-element-interactions': 'off',
-    },
-  },
-
   // Unicorn plugin for additional best practices
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
@@ -204,10 +116,69 @@ const config = [
     },
   },
 
+  // TypeScript specific rules
+  {
+    files: ['**/*.{ts,tsx}'],
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      '@typescript-eslint/consistent-type-imports': 'error',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-empty-interface': 'error',
+      '@typescript-eslint/no-empty-function': 'warn',
+    },
+  },
+
   // Code style and readability rules
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     rules: {
+      'lines-around-comment': [
+        'error',
+        {
+          beforeBlockComment: true,
+          beforeLineComment: true,
+          allowBlockStart: true,
+          allowObjectStart: true,
+          allowArrayStart: true,
+        },
+      ],
+      'padding-line-between-statements': [
+        'error',
+        {
+          blankLine: 'any',
+          prev: 'export',
+          next: 'export',
+        },
+        {
+          blankLine: 'always',
+          prev: ['const', 'let', 'var'],
+          next: '*',
+        },
+        {
+          blankLine: 'any',
+          prev: ['const', 'let', 'var'],
+          next: ['const', 'let', 'var'],
+        },
+        {
+          blankLine: 'always',
+          prev: '*',
+          next: ['function', 'multiline-const', 'multiline-block-like'],
+        },
+        {
+          blankLine: 'always',
+          prev: ['function', 'multiline-const', 'multiline-block-like'],
+          next: '*',
+        },
+      ],
       'newline-before-return': 'error',
       'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 1 }],
       'eol-last': ['error', 'never'],
@@ -230,7 +201,36 @@ const config = [
     },
   },
 
-  prettierConfig,
-];
+  // Special files overrides
+  {
+    files: ['src/iconify-bundle/*'],
+    rules: {
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-var-requires': 'off',
+    },
+  },
 
-export default config;
+  // Prettier config (must be last to override conflicting rules)
+  prettier,
+
+  // Global ignores (override default ignores of eslint-config-next)
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
+    // Additional ignores:
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/coverage/**',
+    '**/public/**',
+    '**/.git/**',
+    '**/.husky/**',
+    '**/.vscode/**',
+    '**/package-lock.json',
+    '**/pnpm-lock.yaml',
+  ]),
+]);
+
+export default eslintConfig;
