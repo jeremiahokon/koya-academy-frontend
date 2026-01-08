@@ -2,6 +2,25 @@
 @import "tw-animate-css";
 
 @theme inline {
+
+  --font-satoshi: var(--font-satoshi);
+  --font-inter: var(--font-inter);
+  --font-k2d: var(--font-k2d);
+
+  --color-secondary-one: #114e50;
+  --color-secondary-two: #6e9394;
+  --color-accented: #ffb441;
+  --color-secondary-base: #023526;
+  --color-tetiary-text: #454545;
+  --color-quote-background: #f6f1fb;
+  --color-qoute-text: #5b0abf;
+  --color-ongoing-background: #d9f5f8;
+  --color-ongoing-text: #36dcee;
+  --color-pending-background: #f9e8cc;
+  --color-pending-text: #eaa337;
+  --color-divider: #f3f3f3;
+  --color-button-background:#FFEED4;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
