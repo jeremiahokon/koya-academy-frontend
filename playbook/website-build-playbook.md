@@ -20,11 +20,14 @@ On a fresh clone of the starter, in this order:
 Read `node_modules/next/dist/docs/` before writing framework code — the pinned Next
 version has breaking changes against training data, and `AGENTS.md` says so for a reason.
 
-Sibling files in `playbook/` are client-facing advice rather than build rules:
+Sibling files in `playbook/`:
 
+- [`animation.md`](./animation.md) — **build rules**, not advice. The GSAP + ScrollTrigger
+  motion system: tiers, the section motion map, copy-ready code, and the motion gate. Read
+  it at Phase 4, before writing any animation.
 - [`google-business-profile.md`](./google-business-profile.md) — the standing local-SEO
-  recommendation. Read it at Phase 6; it is usually worth more to a local client than
-  anything in the codebase.
+  recommendation, client-facing. Read it at Phase 6; it is usually worth more to a local
+  client than anything in the codebase.
 
 ---
 
@@ -106,6 +109,8 @@ Do not ask which parts are safe to keep. It is all in git.
 | `public/fonts/**` (multi-weight TTF families)                                       | **Delete all of it**            | Phase 7 re-adds exactly what renders                                              |
 | `README.md` (create-next-app boilerplate)                                           | **Rewrite**                     | never keep as-is                                                                  |
 | `eslint-plugin-playwright`                                                          | Delete unless tests exist       | browser tests ship                                                                |
+| `tw-animate-css`                                                                    | **Delete**                      | something renders one of its classes                                              |
+| `gsap` / `lenis` (not in the starter)                                               | **Add** per `animation.md` tier | `visual.motion.tier` is `conversion` (gsap) or `showpiece` (gsap + lenis)         |
 | `.claude/`, `skills-lock.json`, `.mcp.json`, `AGENTS.md`, `playbook/`               | **Keep**                        | always — this is the template's brain                                             |
 
 ### Icons without the icon package
@@ -236,6 +241,10 @@ Five client islands was the whole of the last site. Each one earned it:
 | `opening-hours`     | "Open now" computed at build time would confidently lie    |
 | `services/composer` | the live message preview, the site's signature interaction |
 
+With the GSAP tier from [`animation.md`](./animation.md), `motion` (`MotionScope`) replaces
+`reveal`: one island per page that finds every `data-motion` element, so sections stay
+Server Components however much of the page moves.
+
 ### Interactivity is an enhancement
 
 **If JavaScript never runs, the page is complete and every call to action still works.**
@@ -312,8 +321,13 @@ scale carry it.
 
 ### Motion
 
-- CSS-first. A JS animation loop for an ambient background is strictly worse: it runs on
-  the main thread and competes with scrolling.
+**[`animation.md`](./animation.md) is the motion build.** Pick the tier from
+`visual.motion`, write the section motion map, then use its runtime. The rules below still
+apply to everything it does:
+
+- CSS for hover, press, loops, the hero and anything without a timeline. GSAP for scroll
+  choreography only, loaded on idle as its own chunk. A JS animation loop for an ambient
+  background is strictly worse: it runs on the main thread and competes with scrolling.
 - Animate `transform` and `opacity` only, so work stays on the compositor. **No
   `filter: blur()`** in ambient layers; soft edges come from wide gradient stops.
 - Looping fields travel exactly `-50%` of one full set, so the loop is seamless.
@@ -334,6 +348,7 @@ fine in code comments and commits). Short sentences, confident without hype.
 - [ ] `fable-design-critique` run, its weakest-element finding fixed or consciously accepted.
 - [ ] No section renders empty in any data state.
 - [ ] Reduced-motion pass done with the OS setting actually on.
+- [ ] The motion gate in `animation.md` passes.
 
 ---
 
@@ -569,6 +584,7 @@ from.
 | Works with JS off                                           | —                                      |
 | Never invent a fact                                         | Which facts are known                  |
 | Fable route: dna → surface → critique                       | Concept, palette, type, photography    |
+| One motion island, attributes on server sections, idle GSAP | Motion tier, map, signature moment     |
 | One primary action, works as a plain link                   | What the action is                     |
 | Canonical origin in one module; sitemap; robots; share card | Domain, phrases, entity type           |
 | Fonts instanced and self-hosted; trimmed image ladder       | Which typefaces, which imagery         |
