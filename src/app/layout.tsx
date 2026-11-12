@@ -1,163 +1,71 @@
-import localFont from 'next/font/local';
+import { Instrument_Sans } from 'next/font/google';
 
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
-import Providers from '@/components/providers';
+import { JsonLd } from '@/components/json-ld';
+import { Providers } from '@/components/providers';
+import { SiteHeader } from '@/components/site-header';
+
+import { siteUrl } from '@/app/site';
+
+import { clinic } from '@/data/clinic';
 
 import './globals.css';
-import '../../public/custom-icons.css';
 
-const inter = localFont({
-  src: [
-    {
-      path: '../../public/fonts/inter/Inter_18pt-Thin.ttf',
-      weight: '100',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/inter/Inter_18pt-ExtraLight.ttf',
-      weight: '200',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/inter/Inter_18pt-Light.ttf',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/inter/Inter_18pt-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/inter/Inter_18pt-Medium.ttf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/inter/Inter_18pt-SemiBold.ttf',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/inter/Inter_18pt-Bold.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/inter/Inter_18pt-ExtraBold.ttf',
-      weight: '800',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/inter/Inter_18pt-Black.ttf',
-      weight: '900',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const satoshi = localFont({
-  src: [
-    {
-      path: '../../public/fonts/satoshi/Satoshi-Light.otf',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/satoshi/Satoshi-Regular.otf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/satoshi/Satoshi-Medium.otf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/satoshi/Satoshi-Bold.otf',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/satoshi/Satoshi-Black.otf',
-      weight: '900',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-satoshi',
-  display: 'swap',
-});
-
-const k2d = localFont({
-  src: [
-    {
-      path: '../../public/fonts/K2D/K2D-Thin.ttf',
-      weight: '100',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/K2D/K2D-Light.ttf',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/K2D/K2D-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/K2D/K2D-Medium.ttf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/K2D/K2D-SemiBold.ttf',
-      weight: '600',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/K2D/K2D-Bold.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../../public/fonts/K2D/K2D-ExtraBold.ttf',
-      weight: '800',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-k2d',
+// One variable file covers every weight used (400 body, 600 headings and buttons).
+// next/font downloads it at build time and serves it from this origin.
+const sans = Instrument_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 'Dokita',
-    template: '%s | Dokita',
+    default: `${clinic.name}: book a clinic appointment online`,
+    template: `%s | ${clinic.name}`,
   },
-  description: 'Dokita Admin Panel',
-  authors: [{ name: 'Dokita' }],
-  creator: 'Dokita',
-  publisher: 'Dokita',
-  icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+  description: clinic.description,
+  alternates: { canonical: '/' },
+  applicationName: clinic.name,
+  openGraph: {
+    type: 'website',
+    siteName: clinic.name,
+    title: `${clinic.name}: book a clinic appointment online`,
+    description: clinic.description,
+    url: '/',
   },
+  twitter: { card: 'summary_large_image' },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f5f1ea' },
+    { media: '(prefers-color-scheme: dark)', color: '#121816' },
+  ],
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${satoshi.variable} ${k2d.variable} antialiased`}
-      >
-        <Providers>{children}</Providers>
+    <html lang="en-GB" className={sans.variable}>
+      <body>
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
+        <SiteHeader />
+        <main id="main" className="wrap">
+          <Providers>{children}</Providers>
+        </main>
+        <footer className="wrap site-footer">
+          <p>
+            {clinic.name} · Koya Academy Cohort 4 assessment ·{' '}
+            {clinic.timeZoneLabel}
+          </p>
+        </footer>
+        <JsonLd />
       </body>
     </html>
   );
