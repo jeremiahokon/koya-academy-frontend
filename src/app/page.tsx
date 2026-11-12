@@ -1,25 +1,11 @@
-import { Faq } from '@/components/faq';
-import { SlotBoard } from '@/components/slot-board';
+import { SlotList } from '@/components/slot-list';
 
-import { clinic } from '@/data/clinic';
-
-export default function Home() {
+export default function HomePage() {
   return (
     <>
-      <section className="intro">
-        <h1>{clinic.tagline}</h1>
-        <p className="lede">
-          Choose an open slot, leave your name and email, and you are booked. No
-          account needed.
-        </p>
-      </section>
-
-      <section aria-labelledby="slots-heading">
-        <h2 id="slots-heading">Open slots</h2>
-        <SlotBoard />
-      </section>
-
-      <Faq />
+      <h1>Book an appointment</h1>
+      <p className="muted">Pick an open slot. Times are Lagos time (WAT).</p>
+      <SlotList />
     </>
   );
 }

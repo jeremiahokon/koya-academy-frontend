@@ -1,35 +1,30 @@
-import { demoSchedule } from '@/data/clinic';
 import type { NewSlot } from '@/services/types';
 
-// Slots from tomorrow on, in clinic-local hours. Lagos is UTC+1 all year (no DST).
-const WAT_OFFSET_MINUTES = 60;
+const doctors = ['Dr Ade', 'Dr Bello', 'Dr Chukwu'];
 
-export function buildDemoSlots(now = new Date()): NewSlot[] {
-  const { providers, days, firstHour, lastHour, slotMinutes } = demoSchedule;
+// 30-minute slots, 9:00 to 13:00 Lagos time (UTC+1), for the next 5 days.
+export function buildDemoSlots(): NewSlot[] {
   const slots: NewSlot[] = [];
+  const today = new Date();
 
-  for (let d = 1; d <= days; d++) {
-    const midnightUtc = Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + d
-    );
+  for (let day = 1; day <= 5; day++) {
+    for (const [i, provider] of doctors.entries()) {
+      for (let hour = 9; hour < 13; hour += 0.5) {
+        const start = new Date(today);
 
-    const date = new Date(midnightUtc).toISOString().slice(0, 10);
+        start.setUTCDate(today.getUTCDate() + day);
+        start.setUTCHours(Math.floor(hour) - 1, (hour % 1) * 60, 0, 0);
 
-    providers.forEach((provider, p) => {
-      for (let m = firstHour * 60; m < lastHour * 60; m += slotMinutes) {
-        const start = new Date(midnightUtc + (m - WAT_OFFSET_MINUTES) * 60_000);
-        const hhmm = `${String(Math.floor(m / 60)).padStart(2, '0')}${String(m % 60).padStart(2, '0')}`;
+        const end = new Date(start.getTime() + 30 * 60_000);
 
         slots.push({
-          id: `${date.replaceAll('-', '')}-${hhmm}-${p + 1}`,
+          id: `${start.toISOString().slice(0, 16)}-${i + 1}`,
           provider,
           start: start.toISOString(),
-          end: new Date(start.getTime() + slotMinutes * 60_000).toISOString(),
+          end: end.toISOString(),
         });
       }
-    });
+    }
   }
 
   return slots;

@@ -1,48 +1,31 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import { koyaServer } from '@/lib/koya-server';
+import axios from 'axios';
 
-// Same-origin proxy for the browser's axios client: adds X-API-Key on the server,
-// then relays the API's status, JSON body and Retry-After unchanged.
-// Only the API's own routes are forwarded.
-const ALLOWED = /^(slots|reset|bookings|bookings\/[^/]+)$/;
+// Forwards browser calls to the API and adds the X-API-Key header here on the
+// server, so the key never reaches the browser.
+const api = axios.create({
+  baseURL: process.env.KOYA_API_URL,
+  headers: { 'X-API-Key': process.env.KOYA_API_KEY },
+  validateStatus: () => true, // pass the API's status codes straight through
+});
 
-type Ctx = { params: Promise<{ path: string[] }> };
-
-async function proxy(req: NextRequest, { params }: Ctx) {
+async function proxy(
+  req: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
   const { path } = await params;
-  const target = path.join('/');
-
-  if (!ALLOWED.test(target)) {
-    return NextResponse.json({ error: 'not found' }, { status: 404 });
-  }
-
   const idempotencyKey = req.headers.get('idempotency-key');
 
-  const data =
-    req.method === 'POST' ? await req.json().catch(() => ({})) : undefined;
+  const res = await api.request({
+    url: `/${path.join('/')}`,
+    method: req.method,
+    params: Object.fromEntries(req.nextUrl.searchParams),
+    data: req.method === 'POST' ? await req.json() : undefined,
+    headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {},
+  });
 
-  try {
-    const res = await koyaServer.request({
-      url: `/${path.map(encodeURIComponent).join('/')}`,
-      method: req.method,
-      params: Object.fromEntries(req.nextUrl.searchParams),
-      data,
-      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {},
-    });
-
-    const headers = new Headers({ 'Cache-Control': 'no-store' });
-    const retryAfter = res.headers['retry-after'];
-
-    if (retryAfter) headers.set('Retry-After', String(retryAfter));
-
-    return NextResponse.json(res.data, { status: res.status, headers });
-  } catch {
-    return NextResponse.json(
-      { error: 'the booking service is unreachable' },
-      { status: 502 }
-    );
-  }
+  return NextResponse.json(res.data, { status: res.status });
 }
 
 export { proxy as DELETE, proxy as GET, proxy as POST };

@@ -1,29 +1,19 @@
-import { clinic } from '@/data/clinic';
-
-const zone = { timeZone: clinic.timeZone } as const;
-
-export const formatDay = (iso: string) =>
-  new Intl.DateTimeFormat('en-GB', {
-    ...zone,
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(new Date(iso));
-
-export const formatTime = (iso: string) =>
-  new Intl.DateTimeFormat('en-GB', {
-    ...zone,
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(iso));
+// Slot times are UTC from the API; show them in Lagos time.
+const timeZone = 'Africa/Lagos';
 
 export const formatDateTime = (iso: string) =>
-  new Intl.DateTimeFormat('en-GB', {
-    ...zone,
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(iso));
+  new Date(iso).toLocaleString('en-GB', {
+    timeZone,
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-// Calendar date in the clinic zone, used to group slots by day.
-export const dayKey = (iso: string) =>
-  new Intl.DateTimeFormat('en-CA', zone).format(new Date(iso));
+export const formatTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString('en-GB', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+  });

@@ -16,10 +16,10 @@ browser ── axios (src/services) ──▶ /api/* (Next route handler) ──
   (`POST /bookings` with `Idempotency-Key`, `GET /bookings/:id`, `DELETE /bookings/:id`,
   `GET /bookings?email=&limit=&cursor=`).
 - `src/hooks/` — React Query `useQuery` / `useMutation` hooks over those services
-  (`use-slots.ts`, `use-bookings.ts`); mutations invalidate the slot and booking queries.
-- `src/app/api/[...path]/route.ts` — same-origin proxy. It adds `X-API-Key` on the
-  server and relays the API's status, `{ error }` body and `Retry-After` unchanged, so
-  **the key never reaches the browser**. Only the API's own routes are forwarded.
+  (`use-slots.ts`, `use-bookings.ts`).
+- `src/app/api/[...path]/route.ts` — proxy that adds `X-API-Key` on the server and
+  passes the API's status and `{ error }` body through, so **the key never reaches the
+  browser**.
 - Forms use `react-hook-form` for client-side validation; the API still validates.
 
 ## Environment
@@ -37,8 +37,6 @@ cp .env.example .env.local   # fill in KOYA_API_KEY
 pnpm dev                     # http://localhost:3000
 pnpm check && pnpm build
 ```
-
-Share images: edit `scripts/opengraph-image.html`, then `./scripts/render-og.sh`.
 
 ## Deploy (Vercel)
 
