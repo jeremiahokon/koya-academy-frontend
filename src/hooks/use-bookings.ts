@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import { bookingService } from '@/services/booking-service';
 import type { NewBooking } from '@/services/types';
@@ -9,10 +14,13 @@ export const useBooking = (id: string) =>
     queryFn: () => bookingService.get(id),
   });
 
-export const useBookingsByEmail = (email: string, cursor?: string) =>
-  useQuery({
-    queryKey: ['bookings', email, cursor],
-    queryFn: () => bookingService.listByEmail(email, cursor),
+// Cursor pagination: each page's next_cursor fetches the next one; null means the last page.
+export const useBookingsByEmail = (email: string) =>
+  useInfiniteQuery({
+    queryKey: ['bookings', email],
+    queryFn: ({ pageParam }) => bookingService.listByEmail(email, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
     enabled: Boolean(email),
   });
 

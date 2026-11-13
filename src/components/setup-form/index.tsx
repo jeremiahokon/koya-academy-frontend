@@ -1,6 +1,6 @@
 'use client';
 
-import { buildDemoSlots } from '@/lib/demo-schedule';
+import { buildDemoSlots, MAX_DEMO_SLOTS } from '@/lib/demo-schedule';
 
 import { useResetSlots } from '@/hooks/use-slots';
 import { getErrorMessage } from '@/services/api-client';
@@ -11,8 +11,9 @@ export function SetupForm() {
   return (
     <div className="card">
       <p>
-        Replaces all slots and deletes all bookings, then adds 30-minute slots
-        for 3 doctors over the next 5 days.
+        Replaces all slots and deletes all bookings, then adds the next{' '}
+        {MAX_DEMO_SLOTS} half-hour slots from tomorrow morning, shared across 3
+        doctors.
       </p>
       {reset.isError && <p className="error">{getErrorMessage(reset.error)}</p>}
       {reset.isSuccess && (

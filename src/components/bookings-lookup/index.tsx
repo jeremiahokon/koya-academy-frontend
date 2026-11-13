@@ -11,8 +11,8 @@ import { getErrorMessage } from '@/services/api-client';
 
 export function BookingsLookup() {
   const [email, setEmail] = useState('');
-  const [cursor, setCursor] = useState<string>();
-  const bookings = useBookingsByEmail(email, cursor);
+  const bookings = useBookingsByEmail(email);
+  const items = bookings.data?.pages.flatMap((page) => page.bookings) ?? [];
   const { register, handleSubmit } = useForm<{ email: string }>();
 
   return (
@@ -21,7 +21,6 @@ export function BookingsLookup() {
         className="card form"
         onSubmit={handleSubmit((values) => {
           setEmail(values.email.trim());
-          setCursor(undefined);
         })}
       >
         <label>
@@ -33,14 +32,14 @@ export function BookingsLookup() {
         </button>
       </form>
 
-      {bookings.isFetching && <p>Loading…</p>}
+      {bookings.isPending && email && <p>Loading…</p>}
       {bookings.isError && (
         <p className="error">{getErrorMessage(bookings.error)}</p>
       )}
-      {bookings.data?.bookings.length === 0 && <p>No bookings found.</p>}
+      {bookings.isSuccess && items.length === 0 && <p>No bookings found.</p>}
 
       <ul className="list">
-        {bookings.data?.bookings.map((b) => (
+        {items.map((b) => (
           <li key={b.id} className="row">
             <div>
               <Link href={`/bookings/${b.id}`}>{b.id}</Link>
@@ -51,26 +50,16 @@ export function BookingsLookup() {
         ))}
       </ul>
 
-      <div className="filters">
-        {cursor && (
-          <button
-            type="button"
-            className="chip"
-            onClick={() => setCursor(undefined)}
-          >
-            First page
-          </button>
-        )}
-        {bookings.data?.next_cursor && (
-          <button
-            type="button"
-            className="chip"
-            onClick={() => setCursor(bookings.data.next_cursor ?? undefined)}
-          >
-            Next page
-          </button>
-        )}
-      </div>
+      {bookings.hasNextPage && (
+        <button
+          type="button"
+          className="button"
+          disabled={bookings.isFetchingNextPage}
+          onClick={() => bookings.fetchNextPage()}
+        >
+          {bookings.isFetchingNextPage ? 'Loading…' : 'Load more'}
+        </button>
+      )}
     </>
   );
 }
