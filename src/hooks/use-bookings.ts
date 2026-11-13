@@ -14,11 +14,13 @@ export const useBooking = (id: string) =>
     queryFn: () => bookingService.get(id),
   });
 
-// Cursor pagination: each page's next_cursor fetches the next one; null means the last page.
-export const useBookingsByEmail = (email: string) =>
+// Cursor pagination: each page's next_cursor fetches the next one; null means
+// the last page. Fetched pages stay cached, so going back costs no request.
+export const useBookingsByEmail = (email: string, limit: number) =>
   useInfiniteQuery({
-    queryKey: ['bookings', email],
-    queryFn: ({ pageParam }) => bookingService.listByEmail(email, pageParam),
+    queryKey: ['bookings', email, limit],
+    queryFn: ({ pageParam }) =>
+      bookingService.listByEmail(email, limit, pageParam),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
     enabled: Boolean(email),

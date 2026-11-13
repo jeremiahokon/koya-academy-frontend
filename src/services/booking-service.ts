@@ -22,9 +22,10 @@ export const bookingService = {
     return data;
   },
 
-  listByEmail: async (email: string, cursor?: string) => {
+  // One page of a person's bookings, oldest first. limit is 1 to 50.
+  listByEmail: async (email: string, limit: number, cursor?: string) => {
     const { data } = await apiClient.get<BookingPage>('/bookings', {
-      params: { email, limit: 10, cursor },
+      params: { email, limit, cursor },
     });
 
     return data;

@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 
 import { formatDateTime, formatTime } from '@/lib/format';
 
 import { useCreateBooking } from '@/hooks/use-bookings';
 import { useSlots } from '@/hooks/use-slots';
-import { getErrorMessage } from '@/services/api-client';
+import { getErrorMessage, getStatus } from '@/services/api-client';
 
 type Fields = { name: string; email: string };
 
@@ -18,10 +19,22 @@ export function BookingForm() {
   const slots = useSlots();
   const createBooking = useCreateBooking();
 
-  // Same key on a double submit = same booking. New key after an error.
+  // One Idempotency-Key per booking attempt, made in the browser with
+  // crypto.randomUUID(). A double click or a retry after a dropped connection
+  // resends the same key, so the API replays its first answer instead of
+  // booking twice.
   const [idempotencyKey, setIdempotencyKey] = useState(() =>
     crypto.randomUUID()
   );
+
+  // The API stores its 4xx answers under the key (except 429), so after one of
+  // those a corrected form needs a new key, or it gets 422 "key reused". With
+  // no answer, a 5xx or a 429, keep the key: the retry is the same request.
+  const keyIsSpent = (error: unknown) => {
+    const status = getStatus(error);
+
+    return status !== undefined && status < 500 && status !== 429;
+  };
 
   const { register, handleSubmit, formState } = useForm<Fields>();
 
@@ -37,8 +50,10 @@ export function BookingForm() {
         idempotencyKey,
       },
       {
-        onSuccess: (booking) => router.push(`/bookings/${booking.id}`),
-        onError: () => setIdempotencyKey(crypto.randomUUID()),
+        onSuccess: (booking) => router.push(`/bookings/${booking.id}?new=1`),
+        onError: (error) => {
+          if (keyIsSpent(error)) setIdempotencyKey(crypto.randomUUID());
+        },
       }
     );
 
@@ -73,7 +88,15 @@ export function BookingForm() {
       )}
 
       {createBooking.isError && (
-        <p className="error">{getErrorMessage(createBooking.error)}</p>
+        <p className="error">
+          {getErrorMessage(createBooking.error)}
+          {getStatus(createBooking.error) === 409 && (
+            <>
+              {' '}
+              <Link href="/">Pick another slot</Link>.
+            </>
+          )}
+        </p>
       )}
 
       <button

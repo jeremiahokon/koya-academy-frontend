@@ -25,7 +25,13 @@ async function proxy(
     headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {},
   });
 
-  return NextResponse.json(res.data, { status: res.status });
+  // A 429 says how long to wait in Retry-After; pass it on to the browser.
+  const retryAfter = res.headers['retry-after'];
+
+  return NextResponse.json(res.data, {
+    status: res.status,
+    headers: retryAfter ? { 'Retry-After': String(retryAfter) } : {},
+  });
 }
 
 export { proxy as DELETE, proxy as GET, proxy as POST };
